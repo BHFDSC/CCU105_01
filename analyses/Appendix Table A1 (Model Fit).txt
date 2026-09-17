@@ -1,0 +1,51 @@
+*****Optimise flexible parametric survival models for time from MI to CKD
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+*Check optimal model solution (scale and df)
+local model1 df(1) scale(logcumhazard)
+local model2 df(2) scale(logcumhazard)
+local model3 df(3) scale(logcumhazard)
+local model4 df(4) scale(logcumhazard)
+local model5 df(5) scale(logcumhazard)
+
+local model6 df(1) scale(logodds)
+local model7 df(2) scale(logodds)
+local model8 df(3) scale(logodds)
+local model9 df(4) scale(logodds)
+local model10 df(5) scale(logodds)
+
+local model11 df(1) scale(probit)
+local model12 df(2) scale(probit)
+local model13 df(3) scale(probit)
+local model14 df(4) scale(probit)
+local model15 df(5) scale(probit)
+
+/*min df for loghazard model is 2*/
+local model16 df(2) scale(loghazard)
+local model17 df(3) scale(loghazard)
+local model18 df(4) scale(loghazard)
+local model19 df(5) scale(loghazard)
+
+forvalues i = 1/19 { 
+capture quietly: stpm3 year @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity  i.invasive_coronary_strategy i.discharge_diagnosis, `model`i'' eform     
+estimates store model`i' 
+display "Model`i' complete"
+}
+
+estimates stats model*, n(`r(N)') 
+
+**Once optimal main model identified - check for optimal tvc model formulation
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+local model21 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(2)
+local model22 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(3)
+local model23 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(4)
+local model24 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(5)
+local model25 df(5) scale(logcumhazard) 
+
+forvalues i = 20/25 { 
+capture quietly: stpm3 i.covid_period @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity  i.invasive_coronary_strategy i.discharge_diagnosis, `model`i'' eform     
+estimates store model`i' 
+display "Model`i' complete"
+}
+
+estimates stats model*, n(`r(N)') 

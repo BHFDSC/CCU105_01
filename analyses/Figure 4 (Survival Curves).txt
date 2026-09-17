@@ -1,0 +1,235 @@
+**Time-varying exposure
+
+/*States
+1 = No CKD
+2 = CKD
+3 = Death
+*/
+
+/*Transitions
+1-2 (CKD onset)
+1-3 (death without CKD)
+2-3 (death after CKD)
+*/
+
+*Create a numeric person id
+gen pid = _n
+
+*Use msset to declare and restructure the data for multi-state modelling
+msset, id(pid) states(flag_ckd death_flag) times(time_to_ckd survtime)
+
+*msset also returns a default transition matrix - this needs to be stored for later use
+mat tmat = r(transmatrix)
+mat list tmat
+
+*fit a model by transition
+stset _stop, enter(_start) failure(_status) scale(365.25)
+
+*only analyse the transitions to death
+keep if _to==3 // 1-3 or 2-3 transitions
+
+/* 
+_from=1: no CKD
+_from=2: CKD
+Effect = HR comparing death hazard when exposed vs. unexposed
+*/
+
+*Generate splines for age
+rcsgen mi_index_age, df(3) gen(agercs) orthog
+global ageknots `r(knots)'
+matrix R_age=r(R)
+
+*define temptime
+range temptime 0 8 97
+
+
+*Adjusted model - covid period 1
+stpm3 i._from @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone if covid_period==1, scale(logcumhazard) df(4) tvc(@rcs(mi_index_age, df(3))) dftvc(2) eform
+estimates store surv_trans_covid1
+
+*Predictions - covid period 1
+predict s0_c1_adj, survival timevar(temptime) at(_from 1 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, replace)
+
+predict s1_c1_adj, survival at(_from 2 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+
+*Adjusted model - covid period 2
+stpm3 i._from @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone if covid_period==2, scale(logcumhazard) df(4) tvc(@rcs(mi_index_age, df(3))) dftvc(2) eform
+estimates store surv_trans_covid2
+
+*Predictions - covid period 2
+predict s0_c2_adj, survival at(_from 1 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+predict s1_c2_adj, survival at(_from 2 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+
+*Adjusted model - covid period 3
+stpm3 i._from @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone if covid_period==3, scale(logcumhazard) df(4) tvc(@rcs(mi_index_age, df(3))) dftvc(2) eform
+estimates store surv_trans_covid3
+
+*Predictions - covid period 3
+predict s0_c3_adj, survival at(_from 1 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+predict s1_c3_adj, survival at(_from 2 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+
+*Plots
+
+frame change predictions
+
+*covid period 1
+twoway ///	
+	(rarea s0_c1_adj_lci s0_c1_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c1_adj_lci s1_c1_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c1_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c1_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(off)
+
+*covid period 2
+twoway ///	
+	(rarea s0_c2_adj_lci s0_c2_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c2_adj_lci s1_c2_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c2_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c2_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(off)
+	
+*covid period 3
+twoway ///	
+	(rarea s0_c3_adj_lci s0_c3_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c3_adj_lci s1_c3_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c3_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c3_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(off)
+	
+	*version with legend for formatting
+	twoway ///	
+	(rarea s0_c1_adj_lci s0_c1_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c1_adj_lci s1_c1_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c1_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c1_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(order(1 "no CKD" 2 "CKD"))
+
+**Kidney Replacement Therapy
+
+*Select individuals with CKD only
+keep if flag_ckd==1
+
+*Create a numeric person id
+gen pid = _n
+
+*Generate splines for age
+rcsgen mi_index_age, df(3) gen(agercs) orthog
+global ageknots `r(knots)'
+matrix R_age=r(R)
+
+*Define temptime
+range temptime 0 8 97
+
+*Set up survival data
+stset survtime, failure(death_flag==1) scale(365.25)
+
+*Fit a survival model by KRT
+stpm3 i.flag_krt i.covid_period @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone, scale(logcumhazard) df(4) tvc(agercs1 agercs2 agercs3) dftvc(2) eform
+
+
+*Fit models by KRT and covid period
+
+*Adjusted model - covid period 1
+stpm3 i.flag_krt @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone if covid_period==1, scale(logcumhazard) df(4) eform
+estimates store surv_krt_covid1
+
+*Predictions - covid period 1
+predict s0_c1_adj, survival timevar(temptime) at(flag_krt 0 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, replace)
+
+predict s1_c1_adj, survival at(flag_krt 1 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+
+*Adjusted model - covid period 2
+stpm3 i.flag_krt @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone if covid_period==2, scale(logcumhazard) df(4) eform
+estimates store surv_krt_covid2
+
+*Predictions - covid period 2
+predict s0_c2_adj, survival at(flag_krt 0 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+predict s1_c2_adj, survival at(flag_krt 1 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+
+*Adjusted model - covid period 3
+stpm3 i.flag_krt @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.diabetes_flag i.hypertension_flag i.obesity_flag i.smoking_status2 i.invasivestrategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.ace i.p2y12 i.aldosterone if covid_period==3, scale(logcumhazard) df(4) eform
+estimates store surv_krt_covid3
+
+*Predictions - covid period 3
+predict s0_c3_adj, survival at(flag_krt 0 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+predict s1_c3_adj, survival at(flag_krt 1 mi_index_age 64 sex 0 ethnicity 5 imd_2019_quintiles 3 diabetes_flag 0 hypertension_flag 0 obesity_flag 0 smoking_status2 1 invasivestrategy 1 discharge_diagnosis 1 aspirin 1 betablocker 1 statin 1 ace 1 p2y12 1 aldosterone 0) ci frame(predictions, merge)
+
+
+*Plots
+
+frame change predictions
+
+*covid period 1
+twoway ///	
+	(rarea s0_c1_adj_lci s0_c1_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c1_adj_lci s1_c1_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c1_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c1_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(off)
+
+*covid period 2
+twoway ///	
+	(rarea s0_c2_adj_lci s0_c2_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c2_adj_lci s1_c2_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c2_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c2_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(off)
+	
+*covid period 3
+twoway ///	
+	(rarea s0_c3_adj_lci s0_c3_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) ///
+	(rarea s1_c3_adj_lci s1_c3_adj_uci temptime, color(red) fintensity(30) lwidth(none)) ///
+	(line s0_c3_adj temptime, lcolor(blue) lpattern(solid) lwidth(medthick)) ///
+	(line s1_c3_adj temptime, lcolor(red) lpattern(solid) lwidth(medthick)), ///
+	xscale(range(0 8)) ///
+	xlabel(0(1)8) ///
+	ylabel(0(0.1)1, angle(0)) ///
+	xtitle("Years post myocardial infarction") ///
+	ytitle("Proportion alive") ///
+	graphregion(c(white)) ///
+	legend(off)

@@ -1,0 +1,77 @@
+*Data preparation
+
+*generate splines for age 
+rcsgen mi_index_age, df(3) gen(agercs) orthog
+global ageknots `r(knots)'
+matrix R_age=r(R)
+
+*Generate interaction terms
+egen covid_sex_interaction = group (covid_period sex)
+egen covid_mitype_interaction = group (covid_period discharge_diagnosis)
+
+*Generate Nelson-Aalen estimatea (time to CKD & time to death)
+stset survtime, failure(death_flag==1) scale(365.25)
+sts gen na_mortality =  na
+
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+sts gen na_ckd = na
+
+*Create a numeric person id
+gen pid = _n
+
+*Use msset to declare and restructure the data for multi-state modelling
+msset, id(pid) states(flag_ckd death_flag) times(time_to_ckd survtime)
+
+*Store msset default transition matrix
+mat tmat = r(transmatrix)
+mat list tmat
+
+*Fit a model by transition
+stset _stop, enter(_start) failure(_status) scale(365.25)
+
+**Imputation data preparation
+mi set flong 
+
+mi register imputed family_history_of_chd smoking ethnicity creatinine cholesterol systolic_bp heart_rate cardiogenic_shock_yn 
+
+mi register regular covid_period mi_index_age agercs1 agercs2 agercs3 sex imd_2019_quintiles flag_comorbidity_diabetes flag_comorbidity_hypertension flag_comorbidity_obesity invasive_coronary_strategy discharge_diagnosis aspirin statin betablocker acei aldosterone p2y12 na_mortality na_ckd ckd death_flag egfr egfr_cat flag_ckd
+
+mi register passive  _from _to _status _start _stop _flag _trans _trans1 _trans2 _trans3 
+
+*Imputation Model - Dryrun 
+mi impute chained (logit) family_history_of_chd  ///
+                   (logit)   smoking ///
+				(mlogit) 	  ethnicity ///
+				(pmm, knn(5))	  creatinine /// 
+							= i.covid_period##i.sex i.covid_period##i.discharge_diagnosis i.covid_period##flag_comorbidity_diabetes i.covid_period##flag_comorbidity_obesity i.covid_period##i._from agercs1 agercs2 agercs3 i.imd_2019_quintiles flag_comorbidity_hypertension invasive_coronary_strategy  time_to_ckd ckd survtime death_flag aspirin statin betablocker acei aldosterone p2y12 flag_ckd  na_ckd na_mortality egfr  _to _status _start _stop _flag _trans _trans1 _trans2 _trans3, add(1) dots rseed(1345)  noisily dryrun
+				
+**Run 5 imputations 
+mi impute chained (logit) family_history_of_chd  ///
+                   (logit)   smoking ///
+				(mlogit) 	  ethnicity ///
+				(pmm, knn(5))	  creatinine /// 
+							= i.covid_period##i.sex i.covid_period##i.discharge_diagnosis i.covid_period##flag_comorbidity_diabetes i.covid_period##flag_comorbidity_obesity i.covid_period##i._from agercs1 agercs2 agercs3 i.imd_2019_quintiles flag_comorbidity_hypertension invasive_coronary_strategy  time_to_ckd ckd survtime death_flag aspirin statin betablocker acei aldosterone p2y12 flag_ckd  na_ckd na_mortality egfr  _to _status _start _stop _flag _trans _trans1 _trans2 _trans3, add(5) dots rseed(5432)  noisily 
+				
+save  "imputation_5_msset.dta"
+
+*fit model by transition
+mi stset _stop, enter(_start) failure(_status) scale(365.25)
+
+*For survival models select transitions to death
+keep if _to==3 // 1-3 or 2-3 transitions
+
+*Overall survival for CKD/No CKD - Imputed Model Adjusted by Covid Period
+
+*Covid Period 1 
+mi estimate, cmdok eform: stpm3 i._from  @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.flag_comorbidity_obesity i.smoking i.invasive_coronary_strategy i.discharge_diagnosis i.invasive_coronary_strategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.acei i.aldosterone i.p2y12 if covid_period==1, scale(logcumhazard) df(4) tvc(@rcs(mi_index_age, df(3))) dftvc(2) 
+
+*Covid period 2
+mi estimate, cmdok eform: stpm3 i._from  @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.flag_comorbidity_obesity i.smoking i.invasive_coronary_strategy i.discharge_diagnosis i.invasive_coronary_strategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.acei i.aldosterone i.p2y12 if covid_period==2, scale(logcumhazard) df(4) tvc(@rcs(mi_index_age, df(3))) dftvc(2) 
+
+*Covid period 3
+mi estimate, cmdok eform: stpm3 i._from  @rcs(mi_index_age, df(3)) i.sex b5.ethnicity i.imd_2019_quintiles i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.flag_comorbidity_obesity i.smoking i.invasive_coronary_strategy i.discharge_diagnosis i.invasive_coronary_strategy i.discharge_diagnosis i.aspirin i.betablocker i.statin i.acei i.aldosterone i.p2y12 if covid_period==3, scale(logcumhazard) df(4) tvc(@rcs(mi_index_age, df(3))) dftvc(2) 
+
+*Overall survival for CKD/No CKD - Imputed Model Unadjusted
+mi estimate, cmdok eform: stpm3 i._from if covid_period==1, scale(logcumhazard) df(4) 
+mi estimate, cmdok eform: stpm3 i._from if covid_period==2, scale(logcumhazard) df(4) 
+mi estimate, cmdok eform: stpm3 i._from if covid_period==3, scale(logcumhazard) df(4) 

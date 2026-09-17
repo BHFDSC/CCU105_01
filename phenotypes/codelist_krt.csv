@@ -1,0 +1,529 @@
+terminology,code,description,phenotype,subphenotype
+
+
+icd10,Y602,During kidney dialysis or other perfusion​,renal_replacement_therapy,dialysis
+
+
+icd10,Y612,During kidney dialysis or other perfusion​,renal_replacement_therapy,dialysis
+
+
+icd10,Y622,During kidney dialysis or other perfusion​,renal_replacement_therapy,dialysis
+
+
+icd10,Y841,Kidney dialysis,renal_replacement_therapy,dialysis
+
+
+icd10,Z992,Dependence on renal dialysis,renal_replacement_therapy,dialysis
+
+
+icd10,Z491,Extracorporeal dialysis​,renal_replacement_therapy,dialysis
+
+
+icd10,Z492,Other dialysis​,renal_replacement_therapy,dialysis
+
+
+icd10,N186,Patients with CKD requiring dialysis​,renal_replacement_therapy,dialysis
+
+
+snomed,16320631000119104,Dependence on continuous ambulatory peritoneal dialysis due to end stage renal disease (finding),renal_replacement_therapy,dialysis
+
+
+snomed,11009631000119100,Renal dialysis done,renal_replacement_therapy,dialysis
+
+
+snomed,11000771000119104,Dependence on continuous cycling peritoneal dialysis (finding),renal_replacement_therapy,dialysis
+
+
+snomed,11000731000119102,Dependence on continuous ambulatory peritoneal dialysis (finding),renal_replacement_therapy,dialysis
+
+
+snomed,1110511000000102,Dialysis adequacy using dialyser clearance of urea multiplied by treatment time divided by volume of distribution of urea formula for haemodialysis (observable entity),renal_replacement_therapy,dialysis
+
+
+snomed,1110501000000104,Dialysis adequacy using dialyser clearance of urea multiplied by treatment time divided by volume of distribution of urea formula by combined peritoneal dialysate and urine method (observable entity),renal_replacement_therapy,dialysis
+
+
+snomed,1095231000000108,Transplant of kidney using robotic assistance (procedure),renal_replacement_therapy,transplant
+
+
+snomed,1035471000000100,Dialysis therapy started by renal service (finding),renal_replacement_therapy,dialysis
+
+
+snomed,991611000000107,Dialysis fluid sodium level,renal_replacement_therapy,dialysis
+
+
+snomed,991521000000102,Dialysis fluid glucose level​,renal_replacement_therapy,dialysis
+
+
+snomed,991511000000108,Dialysis fluid urea level,renal_replacement_therapy,dialysis
+
+
+snomed,905871000000102,Ultrasonography guided insertion of nephrostomy tube into transplanted kidney,renal_replacement_therapy,transplant
+
+
+snomed,864311000000105,Thrombosis of vein of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,864271000000105,Thrombosis of artery of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,854161000000102,Anaphylactoid reaction due to haemodialysis,renal_replacement_therapy,dialysis
+
+
+snomed,853021000000108,Aneurysm of artery of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,852981000000100,Aneurysm of vein of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,847881000000107,Stenosis of vein of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,847811000000100,Rupture of vein of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,847791000000101,Rupture of artery of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,844661000000109,Vascular complication of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,843691000000100,Urological complication of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,426361000000104,[V]Unspecified aftercare involving intermittent dialysis​,renal_replacement_therapy,dialysis
+
+
+snomed,426351000000102,[V]Aftercare involving peritoneal dialysis without blame​,renal_replacement_therapy,dialysis
+
+
+snomed,410511000000103,[V]Aftercare involving renal dialysis NOS​,renal_replacement_therapy,dialysis
+
+
+snomed,399241000000100,[V]Kidney transplanted (situation),renal_replacement_therapy,transplant
+
+
+snomed,398471000000102,[V]Aftercare involving intermittent dialysis​,renal_replacement_therapy,dialysis
+
+
+snomed,366961000000102,Renal transplant recipient (finding),renal_replacement_therapy,transplant
+
+
+snomed,286371000119107,Malignant hypertensive end stage renal disease on dialysis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,153891000119101,End stage renal disease on dialysis due to hypertension (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,128001000119105,Hypertension concurrent and due to end stage renal disease on dialysis due to type 1 diabetes mellitus (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,127991000119101,Hypertension concurrent and due to end stage renal disease on dialysis due to type 2 diabetes mellitus (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,96701000119107,Hypertensive heart AND chronic kidney disease on dialysis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,90791000119104,End stage renal disease on dialysis due to type 2 diabetes mellitus (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,90771000119100,End stage renal disease on dialysis due to type 1 diabetes mellitus (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,6501000179109,Laprascopic biopsy of transplanted kidney,renal_replacement_therapy,transplant
+
+
+snomed,6471000179103,Transplantation of kidney and pancreas (procedure),renal_replacement_therapy,transplant
+
+
+snomed,411000124108,Haemodialysis residual renal function,renal_replacement_therapy,dialysis
+
+
+snomed,381000124105,Increase dialyzer size for hemodialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,782655004,Laparoscopic transplant of kidney using robotic assistance (procedure),renal_replacement_therapy,transplant
+
+
+snomed,765479007,Allotransplantation of right kidney (procedure),renal_replacement_therapy,transplant
+
+
+snomed,765478004,Allotransplantation of left kidney (procedure),renal_replacement_therapy,transplant
+
+
+snomed,737295003,Transplanted kidney present (finding),renal_replacement_therapy,transplant
+
+
+snomed,736690008,Dialysis care plan (record artifact),renal_replacement_therapy,dialysis
+
+
+snomed,719352000,Kidney transplant recipient (finding),renal_replacement_therapy,transplant
+
+
+snomed,718330001,Hemodialysis care (regime/therapy),renal_replacement_therapy,dialysis
+
+
+snomed,718308002,Peritoneal dialysis care (regime/therapy),renal_replacement_therapy,dialysis
+
+
+snomed,718030008,Antegrade insertion of stent into transplanted ureter using fluroscopic guidance,renal_replacement_therapy,transplant
+
+
+snomed,714153000,Chronic kidney disease stage 5 with transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,714152005,Chronic kidney disease stage 5 on dialysis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,713825007,Renal artery stenosis of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,712754003,Replacement of continuous ambulatory peritoneal dialysis transfer set (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,711446003,Transplantation of kidney regime (regime/therapy),renal_replacement_therapy,transplant
+
+
+snomed,711413009,Allotransplantation of kidney from non-beating heart cadaver (procedure),renal_replacement_therapy,transplant
+
+
+snomed,711411006,Allotransplantation of kidney from beating heart cadaver (procedure),renal_replacement_therapy,transplant
+
+
+snomed,710071003,Management of peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,708931003,Maintenance hemodialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,707148007,Recurrent post-transplant renal disease (disorder),renal_replacement_therapy,transplant
+
+
+snomed,703048006,Vesicoureteric reflux after renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,699235009,Continuous ambulatory peritoneal dialysis associated peritonitis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,473195006,Normal renal function of transplanted kidney (finding),renal_replacement_therapy,transplant
+
+
+snomed,462550000,"Haemodialysis system, institutional/home-use",renal_replacement_therapy,dialysis
+
+
+snomed,462316005,Haemodialysis start/stop set,renal_replacement_therapy,dialysis
+
+
+snomed,446048008,Change of prescription for haemodialysis,renal_replacement_therapy,dialysis
+
+
+snomed,443596009,Dependence on peritoneal dialysis (finding),renal_replacement_therapy,dialysis
+
+
+snomed,443143006,Dependence on hemodialysis (finding),renal_replacement_therapy,dialysis
+
+
+snomed,442326005,Cloudy peritoneal dialysis effluent (finding),renal_replacement_therapy,dialysis
+
+
+snomed,440512006,Biopsy of transplanted kidney using ultrasound guidance,renal_replacement_therapy,transplant
+
+
+snomed,440084005,Assessment of adequacy of dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,438661003,Renal transplant biopsy sample,renal_replacement_therapy,transplant
+
+
+snomed,438342006,Replacement of peritoneal dialysis catheter (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,432018009,Replacement of dialysis catheter using fluoroscopic guidance (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,431988002,Doppler ultrasonography of transplanted kidney,renal_replacement_therapy,transplant
+
+
+snomed,431873008,Peritonitis due to infected peritoneal dialysis catheter,renal_replacement_therapy,dialysis
+
+
+snomed,429451003,Disorder related to renal transplantation (disorder),renal_replacement_therapy,transplant
+
+
+snomed,429075005,Dependence on dialysis due to end stage renal disease (finding),renal_replacement_therapy,dialysis
+
+
+snomed,428982002,Dependence on hemodialysis due to end stage renal disease (finding),renal_replacement_therapy,dialysis
+
+
+snomed,428937001,Dependence on peritoneal dialysis due to end stage renal disease (finding),renal_replacement_therapy,dialysis
+
+
+snomed,428648006,Automated peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,428645009,Examination of recipient after kidney transplant (procedure),renal_replacement_therapy,transplant
+
+
+snomed,428575007,Hypertension secondary to kidney transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,412859006,Dialysis fluid examination,renal_replacement_therapy,dialysis
+
+
+snomed,408667000,Haemodialysis-associated hypotension,renal_replacement_therapy,dialysis
+
+
+snomed,385973000,Dialysis care management,renal_replacement_therapy,dialysis
+
+
+snomed,385971003,Dialysis care (regime/therapy),renal_replacement_therapy,dialysis
+
+
+snomed,302497006,Hemodialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,300478000,Finding of measures of dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,277011002,Pre-existing disease in renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,269698004,Failure of sterile precautions during kidney dialysis​,renal_replacement_therapy,dialysis
+
+
+snomed,265764009,Renal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,263636009,Type of haemodialysis,renal_replacement_therapy,dialysis
+
+
+snomed,251866006,Adequacy of dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,251859005,Dialysis finding​,renal_replacement_therapy,dialysis
+
+
+snomed,243779008,Venous port blood sampling during haemodialysis,renal_replacement_therapy,dialysis
+
+
+snomed,243778000,Arterial port blood sampling during haemodialysis,renal_replacement_therapy,dialysis
+
+
+snomed,238323009,Night-time intermittent peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,238322004,Tidal peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,238321006,Intermittent peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,238319001,Continuous cycling peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,238318009,Continuous ambulatory peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,236614007,Perirenal and periureteric post-transplant lymphocele (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236610003,Escape of urine from transplanted ureter (disorder),renal_replacement_therapy,transplant
+
+
+opcs4,X401,Renal dialysis,renal_replacement_therapy,dialysis
+
+
+opcs4,X402,Peritoneal dialysis,renal_replacement_therapy,dialysis
+
+
+opcs4,X405,Automated peritoneal dialysis,renal_replacement_therapy,dialysis
+
+
+opcs4,X406,Continuous ambulatory peritoneal dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,236589004,Transplant glomerulopathy - later form (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236588007,Transplant glomerulopathy  - early form (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236584009,Perfusion injury of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236583003,Failed renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236582008,Acute-on-chronic rejection of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236581001,Chronic rejection of renal transplant -  grade II (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236580000,Chronic rejection of renal transplant -  grade II (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236579003,Chronic rejection of renal transplant -  grade I (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236578006,Chronic rejection of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236577001,Acute rejection of renal transplant -  grade II (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236576005,Acute rejection of renal transplant -  grade II (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236575009,Acute rejection of renal transplant -  grade I (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236574008,Acute rejection of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236573002,Very mild acute rejection of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236572007,Accelerated rejection of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236571000,Hyperacute rejection of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236570004,Renal transplant rejection (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236569000,Primary non-function of renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236551009,Underdialysis,renal_replacement_therapy,dialysis
+
+
+snomed,236542001,Long-term disorder of dialysis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,236539007,Haemodialysis first use syndrome,renal_replacement_therapy,dialysis
+
+
+snomed,236436003,End stage renal failure with renal transplant (disorder),renal_replacement_therapy,transplant
+
+
+snomed,236435004,End stage renal failure on dialysis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,236138007,Xenograft renal transplant (procedure),renal_replacement_therapy,transplant
+
+
+snomed,234046009,Transplant renal vein thrombosis (disorder),renal_replacement_therapy,transplant
+
+
+snomed,225282005,Washing back through haemodialysis lines,renal_replacement_therapy,dialysis
+
+
+snomed,216933008,Failure of sterile precautions during kidney dialysis​,renal_replacement_therapy,dialysis
+
+
+snomed,216904007,Foreign object left in body during kidney dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,216904007,Acute rejection of renal transplant - grade i,renal_replacement_therapy,transplant
+
+
+snomed,216878005,"Accidental cut, puncture, perforation or haemorrhage during kidney dialysis​",renal_replacement_therapy,dialysis
+
+
+snomed,213150003,Kidney transplant failure and rejection (disorder),renal_replacement_therapy,transplant
+
+
+snomed,197747000,Renal tubulo - interstitial disorders in transplant rejection (disorder),renal_replacement_therapy,transplant
+
+
+snomed,175902000,Cadaveric renal transplant (procedure),renal_replacement_therapy,transplant
+
+
+snomed,175901007,Live donor renal transplant (procedure),renal_replacement_therapy,transplant
+
+
+snomed,161693006,H/O: kidney dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,116223007,"Kidney dialysis with complication, without blame​",renal_replacement_therapy,dialysis
+
+
+snomed,115500004,Post-dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,108241001,Dialysis procedure​,renal_replacement_therapy,dialysis
+
+
+snomed,105502003,Dependence on renal dialysis (finding),renal_replacement_therapy,dialysis
+
+
+snomed,87235005,Dialysis disequilibrium,renal_replacement_therapy,dialysis
+
+
+snomed,71192002,Peritoneal dialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,70536003,Transplant of kidney (procedure),renal_replacement_therapy,transplant
+
+
+snomed,68341005,Hemodialysis supervision at home (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,67970008,Hemodialysis maintenance at home (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,67970008,"Haemodialysis, maintenance at home",renal_replacement_therapy,dialysis
+
+
+snomed,58797008,Complication of transplanted kidney (disorder),renal_replacement_therapy,transplant
+
+
+snomed,57274006,Initial hemodialysis (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,52213001,Renal homotransplantation excluding donor and recipient nephrectomy (procedure),renal_replacement_therapy,transplant
+
+
+snomed,33461007,Complication of peritoneal dialysis (disorder),renal_replacement_therapy,dialysis
+
+
+snomed,19765000,Complication of dialysis,renal_replacement_therapy,dialysis
+
+
+snomed,14684005,Peritoneal dialysis excluding cannulation (procedure),renal_replacement_therapy,dialysis
+
+
+snomed,9345005,Dialysis dementia,renal_replacement_therapy,dialysis
+
+
+snomed,676002,Peritoneal dialysis including cannulation (procedure),renal_replacement_therapy,dialysis
+
+
+opcs4,M012,Allotransplantation of kidney from live donor,renal_replacement_therapy,transplant
+
+
+opcs4,M013,Allotransplantation of kidney from cadaver NEC,renal_replacement_therapy,transplant
+
+
+opcs4,M014,Allotransplantation of kidney from cadaver heart beating,renal_replacement_therapy,transplant
+
+
+opcs4,M015,Allotransplantation of kidney from cadaver heart non-beating,renal_replacement_therapy,transplant
+
+
+opcs4,M018,Other specified transplantation of kidney,renal_replacement_therapy,transplant
+
+
+opcs4,M019,Unspecified transplantation of kidney,renal_replacement_therapy,transplant
+
+
+opcs4,M174,Post-transplantation of kidney examination - recipient,renal_replacement_therapy,transplant
+
+
+opcs4,M178, Other specified interventions associated with transplantation of kidney,renal_replacement_therapy,transplant
+
+
+opcs4,M179,Unspecified interventions associated with transplantation of kidney,renal_replacement_therapy,transplant

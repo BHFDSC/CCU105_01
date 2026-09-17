@@ -1,0 +1,340 @@
+***Flexible Parametric Survival Models for HRs and CIFs. 
+***MI to CKD 
+
+***************************************
+*                                     *
+* Overall, no adjust                  *
+***************************************
+
+range temptime 0 8 97
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+stpm3 i.covid_period, eform `model20'
+estimates store ckd_adj
+
+stset time_to_ckd, failure(ckd==2) scale(365.25)
+stpm3 i.covid_period, eform `model20'
+estimates store ckd_d_adj
+
+*Extract cumulative incidence function by Covid Period 
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1) at1(covid_period 1)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2) at1(covid_period 2)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3) at1(covid_period 3)
+
+keep temptime CIF*
+drop if temptime==.
+save "\CIF_c123.dta" 
+
+***************************************
+* Sex                                 *
+***************************************
+
+range temptime 0 8 97
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period i.sex, eform `model20'
+estimates store ckd_adj
+
+stpm3 i.covid_period##i.sex, eform `model20'
+estimates store ckd_adj2
+
+lrtest ckd_adj ckd_adj2
+*P-value for interaction: p<0.001 
+
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+stpm3 i.covid_period##i.sex, eform `model20'
+estimates store ckd_adj
+
+stset time_to_ckd, failure(ckd==2) scale(365.25)
+stpm3 i.covid_period##i.sex, eform `model20'
+estimates store ckd_d_adj
+
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+stpm3 i.sex if covid_period==1, eform `model20'
+stpm3 i.sex if covid_period==2, eform `model20'
+stpm3 i.sex if covid_period==3, eform `model20'
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_s0) at1(covid_period 1 sex 0)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_s1) at1(covid_period 1 sex 1)
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_s0) at1(covid_period 2 sex 0)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_s1) at1(covid_period 2 sex 1)
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_s0) at1(covid_period 3 sex 0)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_s1) at1(covid_period 3 sex 1)
+
+keep temptime CIF*
+drop if temptime==.
+save "\CIF_c123_s0s1.dta"
+
+************************************************************
+*   Ethnicity                                              *
+*                                                          * 
+************************************************************
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+stpm3 i.covid_period##b5.ethnicity @rcs(mi_index_age, df(3)) i.sex, eform `model20' 
+estimates store ckd_adj   
+
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+local model20 df(5) scale(logcumhazard) 
+stpm3 i.covid_period b5.ethnicity @rcs(mi_index_age, df(3)) i.sex, eform `model20' 
+estimates store ckd_adj_noint
+
+stset time_to_ckd, failure(ckd==2) scale(365.25)
+stpm3 i.covid_period b5.ethnicity @rcs(mi_index_age, df(3)) i.sex, eform `model20'
+estimates store ckd_d_adj
+
+lrtest  ckd_adj_noint ckd_adj
+*interaction not signficant
+
+foreach period in 1 2 3 {
+	foreach eth in 1 2 3 4 5 {
+		standsurv, crmodels(ckd_adj_noint ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c`period'_e`eth') at1(covid_period `period' ethnicity `eth') 
+} 
+}
+
+keep temptime CIF* 
+save "\CIF_c123_ethnicity.dta"			   
+			   
+******************************************************************
+*                                                                *
+* Deprivation                                                    *
+******************************************************************
+
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+stpm3 i.covid_period i.imd_2019_quintiles b5.ethnicity  @rcs(mi_index_age, df(3)) i.sex, eform `model20'
+estimates store ckd_adj
+
+stpm3 i.covid_period##i.imd_2019_quintiles b5.ethnicity  @rcs(mi_index_age, df(3)) i.sex, eform `model20'
+estimates store ckd_adj2
+
+lrtest ckd_adj ckd_adj2
+*P-value for interaction: 0.9642 
+
+stset time_to_ckd, failure(ckd==2) scale(365.25)
+stpm3 i.covid_period i.imd_2019_quintiles  @rcs(mi_index_age, df(3)) i.sex, eform `model20'
+estimates store ckd_d_adj
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_d1) at1(covid_period 1 imd_2019_quintiles 1)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_d2) at1(covid_period 1 imd_2019_quintiles 2)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_d3) at1(covid_period 1 imd_2019_quintiles 3)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_d4) at1(covid_period 1 imd_2019_quintiles 4)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_d5) at1(covid_period 1 imd_2019_quintiles 5)
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_d1) at1(covid_period 2 imd_2019_quintiles 1)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_d2) at1(covid_period 2 imd_2019_quintiles 2)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_d3) at1(covid_period 2 imd_2019_quintiles 3)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_d4) at1(covid_period 2 imd_2019_quintiles 4)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c2_d5) at1(covid_period 2 imd_2019_quintiles 5)
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_d1) at1(covid_period 3 imd_2019_quintiles 1)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_d2) at1(covid_period 3 imd_2019_quintiles 2)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_d3) at1(covid_period 3 imd_2019_quintiles 3)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_d4) at1(covid_period 3 imd_2019_quintiles 4)
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c3_d5) at1(covid_period 3 imd_2019_quintiles 5)
+
+keep temptime CIF*
+drop if temptime==.
+save "\CIF_c123_d12345.dta" 
+ 
+******************************************************************
+*                                                                *
+* MI Phenotype                                                   *
+******************************************************************
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period i.discharge_diagnosis  @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj
+
+stpm3 i.covid_period##i.discharge_diagnosis b5.ethnicity  @rcs(mi_index_age, df(3)) i.sex i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj2
+
+lrtest ckd_adj ckd_adj2
+*P-value for interaction: p<0.001 
+
+*Run and store estimates for interaction model
+stpm3 i.covid_period##i.discharge_diagnosis b5.ethnicity  @rcs(mi_index_age, df(3)) i.sex i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj
+
+stset time_to_ckd, failure(ckd==2) scale(365.25)
+stpm3 i.covid_period##i.discharge_diagnosis b5.ethnicity  @rcs(mi_index_age, df(3)) i.sex i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_d_adj
+
+standsurv, crmodels(ckd_adj ckd_d_adj) cif ci timevar(temptime) atvar(CIF_c1_diag1) at1(covid_period 1 discharge_diagnosis 0)
+
+keep temptime CIF*
+drop if temptime==.
+save "\CIF_c123_diag0diag1.dta" 
+
+******************************************************************
+*                                                                *
+* Age                                                            *
+******************************************************************
+
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj
+
+stpm3 i.covid_period @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj2
+
+* HR for a 10-year increase at ages 40, 50, 60, 70
+
+	 predict h40b h50, hazard ci timevar(8) ///
+            at1(mi_index_age 40, obsvalues) /// 
+            at2(mi_index_age 50, obsvalues) /// 
+			contrast(ratio) contrastvar(hr50) ///
+            frame(ageHRs, replace)	
+			
+frame change ageHRs
+frame change default
+
+*when merging to the same frame - don't specify timevar again as it will use the timevar already in the frame
+predict h50b h60, hazard ci ///
+            at1(mi_index_age 50, obsvalues) /// 
+            at2(mi_index_age 60, obsvalues) /// 
+			contrast(ratio) contrastvar(hr60) ///
+            frame(ageHRs, merge)
+			
+			predict h60b h70, hazard ci ///
+            at1(mi_index_age 60, obsvalues) /// 
+            at2(mi_index_age 70, obsvalues) /// 
+			contrast(ratio) contrastvar(hr70) ///
+            frame(ageHRs, merge)
+			
+			predict h70b h80, hazard ci ///
+            at1(mi_index_age 70, obsvalues) /// 
+            at2(mi_index_age 80, obsvalues) /// 
+			contrast(ratio) contrastvar(hr80) ///
+            frame(ageHRs, merge)
+
+frame change ageHRs 
+list hr* in 1
+frame change default  			
+			
+**check for interaction 
+stpm3 i.covid_period##@rcs(mi_index_age, df(3)) b5.ethnicity i.sex i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj2
+
+lrtest ckd_adj ckd_adj2
+
+ 
+******************************************************************
+*  Invasive management                                           *
+******************************************************************
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period b1.invasive_coronary_strategy @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj
+
+stpm3 i.covid_period##b1.invasive_coronary_strategy @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_adj2
+
+lrtest ckd_adj ckd_adj2
+*P-value for interaction: p<0.5523 
+
+stset time_to_ckd, failure(ckd==2) scale(365.25)
+stpm3 i.covid_period b1.invasive_coronary_strategy @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity, eform `model20'
+estimates store ckd_d_adj
+ 
+******************************************************************
+*                                                                *
+* Diabetes                                                       *
+******************************************************************
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd, eform `model20'
+estimates store ckd_adj
+
+stpm3 i.covid_period##i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd, eform `model20'
+estimates store ckd_adj2
+
+lrtest ckd_adj ckd_adj2
+*P-value for interaction: p 0.0168 
+ 
+stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==1, eform `model20'
+
+stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==2, eform `model20'
+
+stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==3, eform `model20'
+
+******************************************************************
+*                                                                *
+* Hypertension                                                   *
+******************************************************************
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period i.flag_comorbidity_hypertension i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd, eform `model20'
+estimates store ckd_adj
+ 
+stpm3 i.flag_comorbidity_hypertension i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_diabetes i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==1, eform `model20'
+
+stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==2, eform `model20'
+
+stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking_status2 i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==3, eform `model20'
+
+
+******************************************************************
+*                                                                *
+* Obesity                                                        *
+******************************************************************
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+
+stpm3 i.covid_period i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking_status2 , eform `model20'
+estimates store obesity
+
+stpm3 i.covid_period##i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking_status2, eform `model20'
+estimates store obesity_interaction
+
+lrtest obesity obesity_interaction
+
+
+******************************************************************
+*                                                                *
+* CIF Curves Ove                                                 *
+******************************************************************
+**overall and competing death graph**
+foreach period in 1 2 3{
+twoway (rarea CIF_c`period'_ckd_adj_lci CIF_c`period'_ckd_adj_uci temptime, color(purple) fintensity(30) lwidth(none)) (line CIF_c`period'_ckd_adj temptime, lc(purple)) /// 
+(rarea CIF_c`period'_ckd_d_adj_lci CIF_c`period'_ckd_d_adj_uci temptime, color(orange) fintensity(30) lwidth(none)) (line CIF_c`period'_ckd_d_adj temptime, lc(orange)), /// 
+     		   xscale(range(0 8)) xlabel(0(1)8) xtitle("Years post myocardial infarction") ytitle("Cumulative Incidence Function (%)") ylabel(0 "0"  .05 "5" .1 "10" .15 "15" .2 "20" .25 "25" .3 "30", angle(0)) graphregion(c(white)) legend(off)
+}
+
+***ethnicity graph***
+foreach period in 1 2 3{
+twoway (rarea CIF_c`period'_e2_ckd_adj_noint_lci CIF_c`period'_e2_ckd_adj_noint_uci temptime, color(orange) fintensity(30) lwidth(none)) (line CIF_c`period'_e2_ckd_adj_noint temptime, lc(orange)) /// 
+(rarea CIF_c`period'_e3_ckd_adj_noint_lci CIF_c`period'_e3_ckd_adj_noint_uci temptime, color(blue) fintensity(30) lwidth(none)) (line CIF_c`period'_e3_ckd_adj_noint temptime, lc(blue)) /// 
+(rarea CIF_c`period'_e4_ckd_adj_noint_lci CIF_c`period'_e4_ckd_adj_noint_uci temptime, color(black) fintensity(30) lwidth(none)) (line CIF_c`period'_e4_ckd_adj_noint temptime, lc(black)) ///
+(rarea CIF_c`period'_e5_ckd_adj_noint_lci CIF_c`period'_e5_ckd_adj_noint_uci temptime, color(red) fintensity(30) lwidth(none)) (line CIF_c`period'_e5_ckd_adj_noint temptime, lc(red)) /// 
+(rarea CIF_c`period'_e1_ckd_adj_noint_lci CIF_c`period'_e1_ckd_adj_noint_uci temptime, color(purple) fintensity(30) lwidth(none)) (line CIF_c`period'_e1_ckd_adj_noint temptime, lc(purple)), /// 
+     		   xscale(range(0 8)) xlabel(0(1)8) xtitle("Years post myocardial infarction") ytitle("Cumulative Incidence Function (%)") ylabel(0 "0"  .05 "5" .1 "10" .15 "15" .2 "20" .25 "25" .30 "30" .35 "35" 0.40 "40", angle(0)) graphregion(c(white)) 
+}
+			   
+			   
+			   ***deprivation graph***
+foreach period in 1 2 3 {
+twoway (rarea CIF_c`period'_d5_ckd_adj_lci CIF_c`period'_d5_ckd_adj_uci temptime, color(orange) fintensity(30) lwidth(none)) (line CIF_c`period'_d5_ckd_adj temptime, lc(orange)) /// 
+(rarea CIF_c`period'_d4_ckd_adj_lci CIF_c`period'_d4_ckd_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) (line CIF_c`period'_d4_ckd_adj temptime, lc(blue)) /// 
+(rarea CIF_c`period'_d3_ckd_adj_lci CIF_c`period'_d3_ckd_adj_uci temptime, color(black) fintensity(30) lwidth(none)) (line CIF_c`period'_d3_ckd_adj temptime, lc(black)) ///
+(rarea CIF_c`period'_d2_ckd_adj_lci CIF_c`period'_d2_ckd_adj_uci temptime, color(red) fintensity(30) lwidth(none)) (line CIF_c`period'_d2_ckd_adj temptime, lc(red)) /// 
+(rarea CIF_c`period'_d1_ckd_adj_lci CIF_c`period'_d1_ckd_adj_uci temptime, color(purple) fintensity(30) lwidth(none)) (line CIF_c`period'_d1_ckd_adj temptime, lc(purple)), /// 
+     		   xscale(range(0 8)) xlabel(0(1)8) xtitle("Years post myocardial infarction") ytitle("Cumulative Incidence Function (%)") ylabel(0 "0"  .05 "5" .1 "10" .15 "15" .2 "20" .25 "25" .3 "30", angle(0)) graphregion(c(white)) legend(off) 
+}
+
+			   ***sex graph***
+foreach period in 1 2 3 {
+twoway (rarea CIF_c`period'_s0_ckd_adj_lci CIF_c`period'_s0_ckd_adj_uci temptime, color(black) fintensity(30) lwidth(none)) (line CIF_c`period'_s0_ckd_adj temptime, lc(black)) /// 
+(rarea CIF_c`period'_s1_ckd_adj_lci CIF_c`period'_s1_ckd_adj_uci temptime, color(purple) fintensity(30) lwidth(none)) (line CIF_c`period'_s1_ckd_adj temptime, lc(purple)),  /// 
+     		   xscale(range(0 8)) xlabel(0(1)8) xtitle("Years post myocardial infarction") ytitle("Cumulative Incidence Function (%)") ylabel(0 "0"  .05 "5" .1 "10" .15 "15" .2 "20" .25 "25" .3 "30" .35 "35", angle(0)) graphregion(c(white)) legend(off) 
+}
+
+   ***age graph***
+foreach period in 1 2 3{
+twoway (rarea CIF_c`period'_a39_ckd_adj_lci CIF_c`period'_a39_ckd_adj_uci temptime, color(orange) fintensity(30) lwidth(none)) (line CIF_c`period'_a39_ckd_adj temptime, lc(orange)) /// 
+(rarea CIF_c`period'_a50_ckd_adj_lci CIF_c`period'_a50_ckd_adj_uci temptime, color(blue) fintensity(30) lwidth(none)) (line CIF_c`period'_a50_ckd_adj temptime, lc(blue)) /// 
+(rarea CIF_c`period'_a70_ckd_adj_lci CIF_c`period'_a70_ckd_adj_uci temptime, color(black) fintensity(30) lwidth(none)) (line CIF_c`period'_a70_ckd_adj temptime, lc(black)) ///
+(rarea CIF_c`period'_a90_ckd_adj_lci CIF_c`period'_a90_ckd_adj_uci temptime, color(red) fintensity(30) lwidth(none)) (line CIF_c`period'_a90_ckd_adj temptime, lc(red)), /// 
+     		   xscale(range(0 8)) xlabel(0(1)8) xtitle("Years post myocardial infarction") ytitle("Cumulative Incidence Function (%)") ylabel(0 "0"  .05 "5" .1 "10" .15 "15" .2 "20" .25 "25" .3 "30" .35 "35" .4 "40", angle(0)) graphregion(c(white)) legend(off) 
+}

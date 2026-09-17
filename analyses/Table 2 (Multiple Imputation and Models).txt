@@ -1,0 +1,269 @@
+**Data preparation
+
+egen covid_sex_interaction = group (covid_period sex)
+egen covid_mitype_interaction = group (covid_period discharge_diagnosis)
+stset survtime, failure(death_flag==1) scale(365.25)
+sts gen na_mortality =  na
+stset time_to_ckd, failure(ckd==1) scale(365.25)
+sts gen na_ckd = na
+  
+**Imputation data preparation
+mi set flong 
+
+mi register imputed family_history_of_chd smoking ethnicity creatinine cholesterol systolic_bp heart_rate cardiogenic_shock_yn 
+
+mi register regular covid_period mi_index_age agercs1 agercs2 agercs3 sex imd_2019_quintiles flag_comorbidity_diabetes flag_comorbidity_hypertension flag_comorbidity_obesity invasive_coronary_strategy discharge_diagnosis aspirin statin betablocker acei aldosterone p2y12 na_mortality na_ckd ckd  death_flag
+
+mi misstable nested 
+    1.  ethnicity(1460) [rounded for export]
+     2.  heart_rate(8890) [rounded for export]
+     3.  systolic_bp(9330) [rounded for export]
+     4.  creatinine(11565) [rounded for export]
+     5.  smoking_status2(20140) <-> smoking(20140) [rounded for export]
+     6.  cardiogenic_shock_yn(30765) [rounded for export]
+     7.  family_history_of_chd(71320) [rounded for export]
+     8.  cholesterol(103790) [rounded for export]
+
+**note the above suggests it is not monotone missing.
+
+**Imputation Model - Dryrun 
+mi impute chained (logit) family_history_of_chd  ///
+                   (logit)   smoking ///
+				(mlogit) 	  ethnicity ///
+				(pmm, knn(5))	  creatinine /// 
+				= i.covid_period##i.sex agercs1 agercs2 agercs3 sex  imd_2019_quintiles flag_comorbidity_diabetes flag_comorbidity_hypertension flag_comorbidity_obesity invasive_coronary_strategy discharge_diagnosis ckd death_flag na_ckd na_mortality aspirin statin betablocker acei aldosterone p2y12, add(1) dots dryrun
+				
+
+**specify interactions differently 
+mi impute chained (logit) family_history_of_chd  ///
+                   (logit)   smoking ///
+				(mlogit) 	  ethnicity ///
+				(pmm, knn(5))	  creatinine /// 
+				= i.covid_period##i.sex agercs1 agercs2 agercs3 sex  imd_2019_quintiles flag_comorbidity_diabetes flag_comorbidity_hypertension flag_comorbidity_obesity invasive_coronary_strategy discharge_diagnosis ckd death_flag na_ckd na_mortality aspirin statin betablocker acei aldosterone p2y12, add(5) dots noisily rseed(3005)
+				
+save  "imputation_5.dta"
+
+***Age model and predicted HRs at 10 year age bands
+***Stata doesn't like some of the binary variables in the predict command when they dont have labels. Update those here first, re-running model with new versions of the variables and then re-running the predict command
+
+recode flag_comorbidity_diabetes (0=0 "No")(1=1 "Yes"), gen(diab)
+recode flag_comorbidity_hypertension (0=0 "No")(1=1 "Yes"), gen(hyp)
+recode flag_comorbidity_obesity(0=0 "No")(1=1 "Yes"),gen(obese)
+
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok saving(mice_age_stpm3, replace): stpm3 i.covid_period @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.diab i.hyp i.smoking i.obese, eform `model20'
+
+* HR for a 10-year increase at ages 40, 50, 60, 70 at end of follow up (_t=8)
+*NB When calling estimates back for mice_age_stpm3, stata treats this as a standard estimation result with properly MI-combined/Rubins Rules applied coefficients, pooled variance-covariance matrix, correct degrees of freedom which are then called into predict directly. mi predict does not support stpm3 - so predicting from the combined model is the recommended approach for unsupported estimators.
+
+estimates use mice_age_stpm3
+predict h40b h50, hazard ci timevar(8) ///
+            at1(mi_index_age 40, obsvalues) /// 
+            at2(mi_index_age 50, obsvalues) /// 
+			contrast(ratio) contrastvar(hr50) ///
+            frame(ageHRs, replace)	
+			
+frame change ageHRs
+frame change default
+
+*when merging to the same frame - don't specify timevar again as it will use the timevar already in the frame
+predict h50b h60, hazard ci ///
+            at1(mi_index_age 50, obsvalues) /// 
+            at2(mi_index_age 60, obsvalues) /// 
+			contrast(ratio) contrastvar(hr60) ///
+            frame(ageHRs, merge)
+			
+			predict h60b h70, hazard ci ///
+            at1(mi_index_age 60, obsvalues) /// 
+            at2(mi_index_age 70, obsvalues) /// 
+			contrast(ratio) contrastvar(hr70) ///
+            frame(ageHRs, merge)
+			
+			predict h70b h80, hazard ci ///
+            at1(mi_index_age 70, obsvalues) /// 
+            at2(mi_index_age 80, obsvalues) /// 
+			contrast(ratio) contrastvar(hr80) ///
+            frame(ageHRs, merge)
+
+frame change ageHRs 
+list hr* in 1
+frame change default  		
+
+*Imputed, unadjusted non-linear effect for age 
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok saving(mice_age_stpm3_unadj, replace): stpm3 i.covid_period @rcs(mi_index_age, df(3)), eform `model20'
+
+* HR for a 10-year increase at ages 40, 50, 60, 70 at end of follow 
+
+estimates use mice_age_stpm3_unadj
+predict h40b h50, hazard ci timevar(8) ///
+            at1(mi_index_age 40, obsvalues) /// 
+            at2(mi_index_age 50, obsvalues) /// 
+			contrast(ratio) contrastvar(hr50) ///
+            frame(ageHRs_unadj, replace)	
+			
+frame change ageHRs
+frame change default
+
+*when merging to the same frame - don't specify timevar again as it will use the timevar which already exists in the frame
+predict h50b h60, hazard ci ///
+            at1(mi_index_age 50, obsvalues) /// 
+            at2(mi_index_age 60, obsvalues) /// 
+			contrast(ratio) contrastvar(hr60) ///
+            frame(ageHRs_unadj, merge)
+			
+			predict h60b h70, hazard ci ///
+            at1(mi_index_age 60, obsvalues) /// 
+            at2(mi_index_age 70, obsvalues) /// 
+			contrast(ratio) contrastvar(hr70) ///
+            frame(ageHRs_unadj, merge)
+			
+			predict h70b h80, hazard ci ///
+            at1(mi_index_age 70, obsvalues) /// 
+            at2(mi_index_age 80, obsvalues) /// 
+			contrast(ratio) contrastvar(hr80) ///
+            frame(ageHRs_unadj, merge)
+
+frame change ageHRs_unadj 
+list hr* in 1
+frame change default  	
+	
+							
+***Ethnicity imputed model - unadjusted
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 b5.ethnicity, `model20'
+
+***Ethnicity imputed model - adjusted
+local model20 df(5) scale(logcumhazard) tvc(agercs1 agercs2 agercs3) dftvc(1)
+mi estimate, eform cmdok: stpm3 b5.ethnicity agercs1 agercs2 agercs3 i.sex, `model20'
+
+***Deprivation - imputed model	- unadjusted 		
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.covid_period b5.imd_2019_quintiles, `model20'
+
+***Deprivation - imputed model	- adjusted 			
+local model20 df(5) scale(logcumhazard)  tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.covid_period b5.imd_2019_quintiles b5.ethnicity  @rcs(mi_index_age, df(3)) i.sex, `model20'
+
+***MI phenotype imputed model - unadjusted but with interaction
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis##i.covid_period,  `model20'
+
+***Stratified unadjusted HRs by Covid Period
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis if covid_period==1,  `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis if covid_period==2,  `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis if covid_period==3,  `model20'
+
+***MI phenotype imputed model - adjusted
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis i.covid_period agercs1 agercs2 agercs3 i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity,  `model20'
+
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis##i.covid_period agercs1 agercs2 agercs3 i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity,  `model20'
+
+***Stratified adjusted HRs by Covid Period
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis agercs1 agercs2 agercs3 i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity if covid_period==1,  `model20'
+
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis agercs1 agercs2 agercs3 i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity if covid_period==2,  `model20'
+
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.discharge_diagnosis agercs1 agercs2 agercs3 i.sex i.imd_2019_quintiles b5.ethnicity i.family_history_of_chd i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity if covid_period==3,  `model20'
+
+
+***Invasive management - imputed model - unadjusted
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.covid_period b1.invasive_coronary_strategy, eform `model20'
+
+***Invasive management - imputed model - adjusted
+local model20 df(5) scale(logcumhazard) tvc(@rcs(mi_index_age, df(3))) dftvc(1)
+
+mi estimate, eform cmdok: stpm3 i.covid_period b1.invasive_coronary_strategy @rcs(mi_index_age, df(3)) i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_diabetes i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity, eform `model20'
+
+******Hypertension - imputed model - unadjusted 
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.covid_period i.flag_comorbidity_hypertension,  `model20'
+
+******Hypertension - imputed model - adjusted 
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.covid_period i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity i.family_history_of_chd,  `model20'
+
+******Diabetes - imputed model - unadjusted 
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_diabetes if covid_period==1, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_diabetes if covid_period==2, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_diabetes if covid_period==3, eform `model20'
+
+******Diabetes - imputed model - adjusted 
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.covid_period##i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity i.family_history_of_chd, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==1, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==2, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_diabetes i.sex i.imd_2019_quintiles b5.ethnicity i.flag_comorbidity_hypertension i.smoking i.flag_comorbidity_obesity i.family_history_of_chd if covid_period==3, eform `model20'
+
+** Obesity model - complete case - adjusted
+local model20 df(5) scale(logcumhazard) 
+stpm3 i.covid_period i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if _mi_m==0, eform `model20'
+estimates store obesity
+
+local model20 df(5) scale(logcumhazard) 
+stpm3 i.covid_period##i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if _mi_m==0, eform `model20'
+estimates store obesity_interaction
+
+lrtest obesity obesity_interaction
+
+local model20 df(5) scale(logcumhazard) 
+stpm3 i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if covid_period==1 &  _mi_m==0, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+stpm3 i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if covid_period==2 & _mi_m==0, eform `model20'
+
+local model20 df(5) scale(logcumhazard) 
+stpm3 i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if covid_period==3 & _mi_m==0, eform `model20'
+
+
+**Obesity model - imputed - unadjusted
+local model20 df(5) scale(logcumhazard) 
+mi estimate, cmdok eform: stpm3 i.flag_comorbidity_obesity if covid_period==1,  `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, cmdok eform: stpm3 i.flag_comorbidity_obesity if covid_period==2,  `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, cmdok eform: stpm3 i.flag_comorbidity_obesity if covid_period==3,  `model20'
+
+**Obesity model - imputed - adjusted
+local model20 df(5) scale(logcumhazard) 
+mi estimate, cmdok eform: stpm3 i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if covid_period==1,  `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if covid_period==2, `model20'
+
+local model20 df(5) scale(logcumhazard) 
+mi estimate, eform cmdok: stpm3 i.flag_comorbidity_obesity i.sex i.imd_2019_quintiles b5.ethnicity i.smoking if covid_period==3,  `model20'
+

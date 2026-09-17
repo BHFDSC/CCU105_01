@@ -1,0 +1,89 @@
+*****Create Table 1
+
+**Continuous variables
+
+tabstat mi_index_age cholesterol creatinine, stats(median p25 p75) columns(statistics) by(flag_ckd)
+
+tabstat systolic_bp heart_rate, stats(mean sd) columns(statistics) by (flag_ckd)
+
+**Categorical variables
+
+*sex
+tab sex, m
+bysort flag_ckd: tab sex, m
+
+*ethnicity
+tab ethnicity_5_group, m
+bysort flag_ckd: tab ethnicity_5_group, m
+
+*IMD
+tab imd_2019_quintiles, m
+bysort flag_ckd: tab imd_2019_quintiles, m
+
+*MI phenotype
+tab discharge_diagnosis, m
+bysort flag_ckd: tab discharge_diagnosis, m
+
+*covid period
+tab covid_period, m
+bysort flag_ckd: tab covid_period, m
+
+*medical history
+tab flag_comorbidity_hypertension, m
+bysort flag_ckd: tab flag_comorbidity_hypertension, m
+tab flag_comorbidity_diabetes, m
+bysort flag_ckd: tab flag_comorbidity_diabetes, m
+tab flag_comorbidity_obesity, m 
+bysort flag_ckd: tab flag_comorbidity_obesity, m
+tab family_history_of_chd, m
+bysort flag_ckd: tab family_history_of_chd, m
+
+*smoking
+tab smoking_status2, m
+bysort flag_ckd: tab smoking_status2, m
+*discharge medications
+bysort flag_ckd: tab aspirin, m 
+bysort flag_ckd: tab betablocker, m 
+bysort flag_ckd: tab statin, m 
+bysort flag_ckd: tab ace, m 
+bysort flag_ckd: tab p2y12, m 
+bysort flag_ckd: tab aldosterone, m 
+
+*admission diagnosis
+tab admission_diagnosis3, m
+bysort flag_ckd: tab admission_diagnosis3, m
+
+*use of invasive coronary strategy
+tab invasive_coronary_strategy, m
+bysort flag_ckd: tab invasivestrategy, m
+
+*Cardiogenic shock
+tab cardiogenic_shock_yn, m
+bysort flag_ckd: tab cardiogenic_shock_yn, m
+
+*eGFR
+tab egfr_cat, m
+bysort flag_ckd: tab egfr_cat, m
+
+*KRT
+tab flag_krt, m
+bysort flag_ckd: tab flag_krt, m
+
+*crude mortality
+tabstat death_flag if survtime <=30 & death_flag==1, stat(count)
+tabstat death_flag if survtime <=365.25 & death_flag==1, stat(count)
+tabstat death_flag if survtime <=2921 & death_flag==1, stat(count)
+
+*KM estimates - 30 days/1 year/total follow-up
+stset survtime, failure(death_flag==1)
+sts list, failure at(30, 365.25, 2921)
+
+*KM estimate by ckd flag
+stset survtime if flag_ckd==1, failure(death_flag==1)
+sts list, failure at(30, 365.25, 2921)
+
+stset survtime if flag_ckd==0, failure(death_flag==1)
+sts list, failure at(30, 365.25, 2921)
+
+stset survtime, failure(death_flag==1)
+sts graph, by(flag_ckd)
